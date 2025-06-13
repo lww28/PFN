@@ -1953,7 +1953,7 @@ class TabPFNRegressor(RegressorMixin, TabPFNBaseModel):
 class DoPFNRegressor(TabPFNRegressor):
     def __init__(self):
 
-        with open('artifacts/dopfn_config.pkl', 'rb') as f:
+        with open('/Users/wenqinliu/Desktop/PFN/Do-PFN-main/artifacts/dopfn_config.pkl', 'rb') as f:
             config = pkl.load(f)
 
         super().__init__(**config.to_kwargs())

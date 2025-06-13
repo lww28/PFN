@@ -61,13 +61,13 @@ def load_model(
         device (str): Device to load the model to
         verbose (bool): Whether to print the loaded config
     """
-    checkpoint: Checkpoint = Checkpoint.load('artifacts/model_submitit_0ccc_id_171b69db_epoch_-1.cpkt')
+    checkpoint: Checkpoint = Checkpoint.load('/Users/wenqinliu/Desktop/PFN/Do-PFN-main/artifacts/model_submitit_0ccc_id_171b69db_epoch_-1.cpkt')
 
     if overwrite_config_keys is not None:
         checkpoint.config = {**checkpoint.config, **overwrite_config_keys}
 
     import pickle as pkl
-    with open('artifacts/dopfn_model.pkl', 'rb') as f:
+    with open('/Users/wenqinliu/Desktop/PFN/Do-PFN-main/artifacts/dopfn_model.pkl', 'rb') as f:
         model = pkl.load(f)
 
     model.load_state_dict(checkpoint.state_dict)
