@@ -621,6 +621,7 @@ class TabPFNBaseModel(BaseEstimator):
         ]
 
         # selects only non-empty features
+        # print('type(eval_xs)', type(eval_xs))
         eval_xs = eval_xs[:, sel].cpu().numpy().astype(np.float64)
 
         warnings.simplefilter("error")
@@ -1268,9 +1269,19 @@ class TabPFNBaseModel(BaseEstimator):
         check_is_fitted(self)
 
         # Input validation
-        X_eval = check_array(
-            X_eval.cpu().detach().numpy(), accept_sparse="csr", dtype=np.float32, force_all_finite=False
-        )
+        # print(type(X_eval))
+        # 先检查X_eval的类型，然后相应处理
+        if hasattr(X_eval, 'cpu'):  # 如果是PyTorch张量
+            X_eval = check_array(
+                X_eval.cpu().detach().numpy(), accept_sparse="csr", dtype=np.float32, force_all_finite=False
+            )
+        else:  # 如果已经是numpy数组
+            X_eval = check_array(
+                X_eval, accept_sparse="csr", dtype=np.float32, force_all_finite=False
+            )
+        # X_eval = check_array(
+        #     X_eval.cpu().detach().numpy(), accept_sparse="csr", dtype=np.float32, force_all_finite=False
+        # )
 
         if X_eval.shape[1] != self.n_features_in_:
             raise ValueError(
@@ -1914,6 +1925,9 @@ class TabPFNRegressor(RegressorMixin, TabPFNBaseModel):
             criterion.borders * data_std.to(criterion.borders.device) + data_mean_added
         ).float()
 
+        # print('type(criterion)', type(criterion))
+        # print('type(prediction_)', type(prediction_))
+       
         predictions = {
             "criterion": criterion.cpu(),
             "mean": criterion.mean(prediction_.cpu()).detach().numpy(),

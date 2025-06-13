@@ -2,6 +2,9 @@
 真实TabPFN-TS和Do-PFN模型的时间序列因果推断实现
 需要确保项目中有相关的模型文件和依赖
 """
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 import os
 import sys
@@ -326,12 +329,21 @@ class RealTimeSeriesCausalInference:
         X_context = context_data[feature_cols].values.astype(np.float32)
         y_context = context_data[target_col].values.astype(np.float32)
         
+        import torch
+
+        # 将numpy数组转换为torch张量
+        X_context_tensor = torch.from_numpy(X_context).float()
+        y_context_tensor = torch.from_numpy(y_context).float()
+
+        # 拟合模型
+        self.dopfn.fit(X_context_tensor, y_context_tensor)
+
         # 拟合Do-PFN模型
-        try:
-            self.dopfn.fit(X_context, y_context)
-        except Exception as e:
-            print(f"Do-PFN拟合失败: {e}")
-            raise
+        # try:
+        #     self.dopfn.fit(X_context, y_context)
+        # except Exception as e:
+        #     print(f"Do-PFN拟合失败: {e}")
+        #     raise
         
         # 准备反事实查询
         X_query_base = query_data[feature_cols].values.astype(np.float32)
@@ -339,6 +351,13 @@ class RealTimeSeriesCausalInference:
         # 创建干预和控制场景
         X_query_treatment = X_query_base.copy()
         X_query_control = X_query_base.copy()
+
+        # 预测时也要转换
+        X_query_treatment_tensor = torch.from_numpy(X_query_treatment).float()
+        X_query_control_tensor = torch.from_numpy(X_query_control).float()
+
+        pred_treatment = self.dopfn.predict_full(X_query_treatment_tensor)
+        pred_control = self.dopfn.predict_full(X_query_control_tensor)
         
         # 找到treatment列的索引
         if intervention_col in feature_cols:
@@ -589,7 +608,8 @@ class RealTimeSeriesCausalInference:
         ax4.grid(True, alpha=0.3)
         
         plt.tight_layout()
-        plt.show()
+        # plt.show()
+        plt.savefig('causal_analysis_report.png', dpi=300)
         
         # 打印统计汇总
         self._print_analysis_summary(causal_results, original_data)
